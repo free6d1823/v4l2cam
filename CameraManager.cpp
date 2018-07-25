@@ -65,10 +65,6 @@ int EnumFpsByFrameSize(int fd, v4l2_frmivalenum& fit, CamProperty* pCp, int& n)
             pCp[n].height = fit.height;
             pCp[n].format = fit.pixel_format;
             pCp[n].fps = fit.discrete.denominator /fit.discrete.numerator;
-
-printf("EnumFpsByFrameSize %d %d %x %d/%d\n", pCp[n].width, pCp[n].height,fit.pixel_format,
-
-            fit.discrete.numerator, fit.discrete.denominator);
             fit.index ++;
             ret = xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS,&fit);
             n++;
@@ -78,12 +74,6 @@ printf("EnumFpsByFrameSize %d %d %x %d/%d\n", pCp[n].width, pCp[n].height,fit.pi
         float min = (float) fit.stepwise.min.numerator/(float)fit.stepwise.min.denominator;
         float max = (float) fit.stepwise.max.numerator/(float)fit.stepwise.max.denominator;
         float dd =  (float) fit.stepwise.step.numerator/(float)fit.stepwise.step.denominator;
-        printf(" step type(%d)-- size(%d/%d-%d/%d-%d/%d)\n",  fit.type,
-               fit.stepwise.min.denominator, fit.stepwise.min.denominator,
-               fit.stepwise.max.denominator,fit.stepwise.max.denominator,
-               fit.stepwise.step.denominator,fit.stepwise.step.denominator
-               );
-
 
         for (float ff=min; ff <=max; ff+= dd){
             pCp[n].width = fit.width;
@@ -104,12 +94,10 @@ int EnumFrameSizeByPixelFormat(int fd, v4l2_frmsizeenum& fse, CamProperty* pCp, 
     //get resolution
     if ( 0 != ret)
        return n;
-    memset(&fit, 0, sizeof(fit));
+    CLEAR(fit);
     fit.pixel_format = fse.pixel_format;
     if (fse.type == V4L2_FRMSIZE_TYPE_DISCRETE || fse.type == 0){//
         do {
-
-            printf("EnumFrameSizeByPixelFormat type(%d) %dx%d--\n",fse.type, fse.discrete.width, fse.discrete.height );
 
             fit.width = fse.discrete.width;
             fit.height = fse.discrete.height;
@@ -120,11 +108,6 @@ int EnumFrameSizeByPixelFormat(int fd, v4l2_frmsizeenum& fse, CamProperty* pCp, 
         }while (ret == 0);
 
     } else {//V4L2_FRMIVAL_TYPE_CONTINUOUS(2) |V4L2_FRMIVAL_TYPE_STEPWISE(3)
-        printf(" step type(%d)-- size(%d-%d-%d, %d-%d-%d)\n",  fse.type,
-               fse.stepwise.min_width, fse.stepwise.max_width,
-               fse.stepwise.step_width,
-               fse.stepwise.min_height, fse.stepwise.max_height,
-               fse.stepwise.step_height);
         fit.width = fse.stepwise.min_width;
         fit.height = fse.stepwise.min_height;
         fit.index = 0;
@@ -153,7 +136,7 @@ int CameraManager::Reflesh()
         CamProperty cp[100];
         int n = 0; //number of property set
         struct v4l2_fmtdesc fmt;
-        memset(&fmt, 0, sizeof(fmt));
+        CLEAR(fmt);
         fmt.index = 0;
         fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         //get pixel format
@@ -169,7 +152,7 @@ int CameraManager::Reflesh()
             pixelformat = fmt.pixelformat;
 
             v4l2_frmsizeenum fse;
-            memset(&fse, 0, sizeof(fse));
+            CLEAR(fse);
             fse.index = 0;
             fse.pixel_format = fmt.pixelformat;
             EnumFrameSizeByPixelFormat(fd, fse, cp, n);
@@ -321,7 +304,7 @@ bool Camera::Open(CamProperty* pCp)
     }*/
 
     struct v4l2_requestbuffers  req;
-    memset(&req, 0, sizeof(req));
+    CLEAR(req);
     req.count = MAX_BUFFER;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
@@ -413,7 +396,6 @@ void Camera::DoFrameProcess()
 }
 bool Camera::Start(OnFrameCallback func, void* data)
 {
-    printf("Start streaming...\n");
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (-1 == xioctl(m_fd, VIDIOC_STREAMON, &type)){
         ReturnError("VIDIOC_STREAMON error\n");
@@ -436,7 +418,6 @@ bool Camera::Stop()
         pthread_join(m_threadFrame, NULL);
     }
     m_nStopThread = 0;
-    printf("Stop streaming...\n");
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (-1 == xioctl(m_fd, VIDIOC_STREAMOFF, &type)){
         ReturnError("VIDIOC_STREAMON error\n");

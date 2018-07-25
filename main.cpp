@@ -22,10 +22,11 @@ void signalHandler(int act)
 }
 void onFrameCallback(void* pBuffer, int length, void* data)
 {
-static double curTime=0;
 
+static double curTime=0;
+    (void)data;
     struct timespec tv;
-    clock_gettime(CLOCK_MONOTONIC, &tv);
+    clock_gettime(CLOCK_MONOTONIC, &tv);    //wandboard works!
     double timeMs = (tv.tv_sec) * 1000 + (tv.tv_nsec) / 1000000 ;
 
 #if 0
@@ -100,16 +101,16 @@ int main()
     pCam->GetCurrentProperty(&cp);
     printf ("Open camera %dx%d, format=%x\n", cp.width,cp.height, cp.format);
 
-//#ifdef USE_CALLBACK
-#if 1
+#ifdef USE_CALLBACK
+//#if 1
     printf("Start with Callback method.\n");
     pCam->Start(onFrameCallback, NULL);
     while (!g_terminate){
         usleep(10000);
     }
 #endif
-#ifdef USE_GET_FRAME
-//#if 1
+//#ifdef USE_GET_FRAME
+#if 1
     printf("Start with GetFrame method:\n");
     int nCount = 100;
     pCam->Start(NULL, NULL);
@@ -134,6 +135,8 @@ int main()
         #endif
             if (curTime > 0){
                 printf("Diff=%8.3f sec -", (timeMs - curTime)/1000);
+            } else {
+                printf("time %9.3f sec - ", timeMs/1000);
             }
             curTime = timeMs;
             printf("got mem(%p) %d bytes\n", pBuffer, length);
