@@ -9,3 +9,5 @@ SOURCES += \
 
 HEADERS += \
     CameraManager.h
+
+LIBS += -lpthread

@@ -25,7 +25,7 @@ void onFrameCallback(void* pBuffer, int length, void* data)
 static double curTime=0;
 
     struct timespec tv;
-    clock_gettime(CLOCK_MONOTONIC, &tv);
+    clock_gettime(CLOCK_MONOTONIC, &tv);    //wandboard works!
     double timeMs = (tv.tv_sec) * 1000 + (tv.tv_nsec) / 1000000 ;
 
 #if 0
